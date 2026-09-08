@@ -12,6 +12,9 @@ import CNIOLinux
 import Musl
 #elseif canImport(Android)
 import Android
+#elseif canImport(ucrt)
+import ucrt
+import WinSDK
 #else
 import Darwin
 #endif

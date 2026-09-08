@@ -4,6 +4,8 @@ import Glibc
 import Musl
 #elseif canImport(Android)
 import Android
+#elseif canImport(ucrt)
+import ucrt
 #else
 import Darwin
 #endif
@@ -227,7 +229,17 @@ public struct DotEnvFile: Sendable {
     ///                  will be overwritten. Defaults to `false`.
     public func load(overwrite: Bool = false) {
         for line in self.lines {
+            #if os(Windows)
+            if overwrite || getenv(line.key) == nil {
+                _ = line.key.withCString { key in
+                    line.value.withCString { value in
+                        _putenv_s(key, value)
+                    }
+                }
+            }
+            #else
             setenv(line.key, line.value, overwrite ? 1 : 0)
+            #endif
         }
     }
     

@@ -4,6 +4,9 @@ import Glibc
 import Musl
 #elseif canImport(Android)
 import Android
+#elseif canImport(ucrt)
+import ucrt
+import Foundation
 #else
 import Darwin.C
 #endif
@@ -37,6 +40,9 @@ public struct DirectoryConfiguration: Sendable {
     ///
     /// - returns: The derived `DirectoryConfig` if it could be created, otherwise just "./".
     public static func detect() -> DirectoryConfiguration {
+        #if os(Windows)
+        return DirectoryConfiguration(workingDirectory: FileManager.default.currentDirectoryPath)
+        #else
         // get actual working directory
         let cwd = getcwd(nil, Int(PATH_MAX))
         defer {
@@ -61,6 +67,7 @@ public struct DirectoryConfiguration: Sendable {
         #endif
         
         return DirectoryConfiguration(workingDirectory: workingDirectory)
+        #endif
     }
 }
 
