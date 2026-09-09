@@ -1,4 +1,17 @@
 import Foundation
+#if os(Windows)
+import ucrt
+#endif
+
+#if os(Windows)
+private func setProcessEnv(_ key: String, _ value: String?) {
+    _ = key.withCString { k in
+        (value ?? "").withCString { v in
+            _putenv_s(k, v)
+        }
+    }
+}
+#endif
 
 extension Environment {    
     /// The process information of an environment. Wraps `ProcessInto.processInfo`.
@@ -23,11 +36,15 @@ extension Environment {
             }
 
             nonmutating set (value) {
+                #if os(Windows)
+                setProcessEnv(member, value?.description)
+                #else
                 if let raw = value?.description {
                     setenv(member, raw, 1)
                 } else {
                     unsetenv(member)
                 }
+                #endif
             }
         }
         
@@ -41,11 +58,15 @@ extension Environment {
             }
 
             nonmutating set (value) {
+                #if os(Windows)
+                setProcessEnv(member, value)
+                #else
                 if let raw = value {
                     setenv(member, raw, 1)
                 } else {
                     unsetenv(member)
                 }
+                #endif
             }
         }
     }

@@ -507,7 +507,7 @@ private final class HTTPServerConnection: Sendable {
             /// Specify accepts per loop and backlog, and enable `SO_REUSEADDR` for the server itself.
             .serverChannelOption(ChannelOptions.maxMessagesPerRead, value: configuration.connectionsPerServerTick)
             .serverChannelOption(ChannelOptions.backlog, value: Int32(configuration.backlog))
-            .serverChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: configuration.reuseAddress ? SocketOptionValue(1) : SocketOptionValue(0))
+            .serverChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: configuration.reuseAddress ? SocketOptionValue(1) : SocketOptionValue(0))
             
             /// Set handlers that are applied to the Server's channel.
             .serverChannelInitializer { channel in
@@ -578,8 +578,8 @@ private final class HTTPServerConnection: Sendable {
             }
             
             /// Enable `TCP_NODELAY` and `SO_REUSEADDR` for the accepted Channels.
-            .childChannelOption(ChannelOptions.socket(IPPROTO_TCP, TCP_NODELAY), value: configuration.tcpNoDelay ? SocketOptionValue(1) : SocketOptionValue(0))
-            .childChannelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_REUSEADDR), value: configuration.reuseAddress ? SocketOptionValue(1) : SocketOptionValue(0))
+            .childChannelOption(ChannelOptions.tcpOption(.tcp_nodelay), value: configuration.tcpNoDelay ? SocketOptionValue(1) : SocketOptionValue(0))
+            .childChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: configuration.reuseAddress ? SocketOptionValue(1) : SocketOptionValue(0))
             .childChannelOption(ChannelOptions.maxMessagesPerRead, value: 1)
         
         let channel: EventLoopFuture<Channel>

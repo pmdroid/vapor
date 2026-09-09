@@ -8,6 +8,7 @@ import Glibc
 @preconcurrency import Musl
 #elseif canImport(WinSDK)
 @preconcurrency import WinSDK
+import ucrt
 #endif
 import Foundation
 import NIOPosix
@@ -102,7 +103,7 @@ internal final class RFC1123DateCache: Sendable {
         
         // generate a key used for caching
         // this key is a unique id for each day
-        let key = date / secondsInDay
+        let key = date / time_t(secondsInDay)
         
         self.cachedTimestampAndComponents.withLockedValue { cachedValues in
             // get time components
@@ -112,7 +113,11 @@ internal final class RFC1123DateCache: Sendable {
                 dateComponents = cachedTimeComponents.components
             } else {
                 var tc = tm.init()
+                #if os(Windows)
+                _ = gmtime_s(&tc, &date)
+                #else
                 gmtime_r(&date, &tc)
+                #endif
                 dateComponents = tc
                 cachedValues.0 = (key: key, components: tc)
             }
@@ -124,7 +129,7 @@ internal final class RFC1123DateCache: Sendable {
             let weekDay: Int = numericCast(dateComponents.tm_wday) // days since Sunday [0-6]
             
             // get basic time info
-            let t: Int = date % secondsInDay
+            let t = Int(date % time_t(secondsInDay))
             let hours: Int = numericCast(t / 3600)
             let minutes: Int = numericCast((t / 60) % 60)
             let seconds: Int = numericCast(t % 60)
